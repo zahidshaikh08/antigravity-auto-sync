@@ -6,6 +6,7 @@
 ### *Float your AI chats across every machine. Zero config. Zero friction.*
 
 [![Release](https://img.shields.io/badge/release-v1.0.1-00f0ff?style=for-the-badge&logo=github)](https://github.com/zahidshaikh08/antigravity-auto-sync)
+[![Open VSX](https://img.shields.io/badge/Open%20VSX-v1.0.1-9d4edd?style=for-the-badge&logo=eclipseide)](https://open-vsx.org/extension/zahidshaikh/antigravity-history-sync)
 [![License: MIT](https://img.shields.io/badge/License-MIT-7b2cbf?style=for-the-badge)](LICENSE)
 [![Platform](https://img.shields.io/badge/Platform-macOS%20%7C%20Windows%20%7C%20Linux-38bdf8?style=for-the-badge)](README.md)
 [![Storage](https://img.shields.io/badge/Cloud-Google%20Drive%20Vault-4285f4?style=for-the-badge&logo=googledrive)](README.md)
@@ -51,9 +52,9 @@ Antigravity stores conversation state across three distinct locations on your ma
 Install the native Antigravity IDE extension to enjoy **100% silent, automatic cloud sync**:
 
 ### 1. Install Extension
-Run in your terminal (or drag-and-drop the `.vsix` into Antigravity):
+Install directly from **[Open VSX Registry](https://open-vsx.org/extension/zahidshaikh/antigravity-history-sync)** or run in your terminal:
 ```bash
-antigravity-ide --install-extension antigravity-sync-1.0.0.vsix
+antigravity-ide --install-extension antigravity-history-sync-1.0.1.vsix
 ```
 *(On macOS, the full path is `"/Applications/Antigravity IDE.app/Contents/Resources/app/bin/antigravity-ide"`)*
 
