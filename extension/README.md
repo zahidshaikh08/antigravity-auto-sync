@@ -5,7 +5,7 @@
 # 🌌 Antigravity Sync
 ### *Float your AI chats across every machine. Zero config. Zero friction.*
 
-[![Release](https://img.shields.io/badge/Release-v1.0.0-00f0ff?style=for-the-badge)](https://github.com/zahidshaikh08/antigravity-auto-sync)
+[![Release](https://img.shields.io/badge/Release-v1.0.1-00f0ff?style=for-the-badge)](https://github.com/zahidshaikh08/antigravity-auto-sync)
 [![License: MIT](https://img.shields.io/badge/License-MIT-7b2cbf?style=for-the-badge)](LICENSE.txt)
 [![Cloud](https://img.shields.io/badge/Cloud-Google%20Drive-4285f4?style=for-the-badge&logo=googledrive)](https://github.com/zahidshaikh08/antigravity-auto-sync)
 
