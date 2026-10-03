@@ -12,6 +12,7 @@ import os
 import sys
 import time
 import json
+import base64
 import tempfile
 import datetime
 from pathlib import Path
@@ -93,6 +94,7 @@ class SyncCoordinator:
             skipped_count = 0
 
             # Step A: Identify and upload newer local conversations
+            local_vscdb_sums = self.engine.read_vscdb_summaries()
             with tempfile.TemporaryDirectory(prefix="agy_sync_") as tmp_dir:
                 tmp_path = Path(tmp_dir)
 
@@ -112,6 +114,10 @@ class SyncCoordinator:
                         res = self.engine.export_archive(zip_out, conversation_ids=[c_id])
                         if res["success"]:
                             file_id = self.gdrive.upload_file(convs_folder_id, f"{c_id}.agyzip", zip_out)
+                            # Get summary chunk
+                            s_chunk = local_vscdb_sums.get(c_id)
+                            s_b64 = base64.b64encode(s_chunk).decode("ascii") if s_chunk else ""
+
                             # Update remote registry entry
                             remote_convs[c_id] = {
                                 "summary": l_meta.get("summary", ""),
@@ -120,6 +126,7 @@ class SyncCoordinator:
                                 "stepCount": l_meta.get("stepCount", 0),
                                 "workspaces": l_meta.get("workspaces", []),
                                 "trajectoryMetadata": l_meta.get("trajectoryMetadata", {}),
+                                "trajectorySummaryB64": s_b64,
                                 "fileId": file_id,
                                 "lastSyncedBy": sync_state.get("deviceId", "node")
                             }
@@ -128,6 +135,7 @@ class SyncCoordinator:
                                 zip_out.unlink()
 
                 # Step B: Identify and download newer remote conversations
+                downloaded_summaries = {}
                 for c_id, r_meta in remote_convs.items():
                     l_meta = local_convs.get(c_id)
                     l_modified = l_meta.get("lastModifiedTime", "") if l_meta else ""
@@ -147,14 +155,43 @@ class SyncCoordinator:
                             imp_res = self.engine.import_archive(zip_in, conflict_strategy=conflict_strategy)
                             if imp_res["success"]:
                                 downloaded_count += 1
+                                if r_meta.get("trajectorySummaryB64"):
+                                    try:
+                                        downloaded_summaries[c_id] = base64.b64decode(r_meta["trajectorySummaryB64"])
+                                    except Exception:
+                                        pass
                         except Exception as e:
                             print(f"[!] Warning: Failed to download conversation {c_id}: {e}", file=sys.stderr)
                         finally:
                             if zip_in.exists():
                                 zip_in.unlink()
 
+                if downloaded_summaries:
+                    self.engine.merge_vscdb_summaries(downloaded_summaries)
+
+                # Step B.2: Ensure all remote conversations are indexed in local Antigravity state.vscdb
+                fresh_local_sums = self.engine.read_vscdb_summaries()
+                missing_vscdb = {}
+                for c_id, r_meta in remote_convs.items():
+                    if c_id not in fresh_local_sums and r_meta.get("trajectorySummaryB64"):
+                        try:
+                            missing_vscdb[c_id] = base64.b64decode(r_meta["trajectorySummaryB64"])
+                        except Exception:
+                            pass
+                if missing_vscdb:
+                    added_count = self.engine.merge_vscdb_summaries(missing_vscdb)
+                    if verbose:
+                        print(f"  ✔ Restored {added_count} conversation(s) into Antigravity Past Conversations index.")
+
+                # Check if remote registry lacks trajectorySummaryB64 for conversations existing locally
+                registry_needs_update = uploaded_count > 0
+                for c_id, r_meta in remote_convs.items():
+                    if not r_meta.get("trajectorySummaryB64") and c_id in local_vscdb_sums:
+                        r_meta["trajectorySummaryB64"] = base64.b64encode(local_vscdb_sums[c_id]).decode("ascii")
+                        registry_needs_update = True
+
                 # Step C: Save updated remote registry back to Google Drive
-                if uploaded_count > 0:
+                if registry_needs_update:
                     remote_registry["updatedAt"] = datetime.datetime.now(datetime.timezone.utc).isoformat()
                     remote_registry["conversations"] = remote_convs
 
