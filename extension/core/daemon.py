@@ -85,6 +85,9 @@ class SyncCoordinator:
             convs_folder_id = self.gdrive.get_or_create_subfolder(folder_id, "conversations")
             remote_registry = self.gdrive.get_remote_registry(folder_id)
 
+            # Step 0: Auto-discover and index all native conversations on disk
+            self.engine.discover_and_index_local_conversations()
+
             local_cache = self.engine.read_cache()
             local_convs = local_cache.get("conversations", {})
             remote_convs = remote_registry.get("conversations", {})
@@ -169,19 +172,18 @@ class SyncCoordinator:
                 if downloaded_summaries:
                     self.engine.merge_vscdb_summaries(downloaded_summaries)
 
-                # Step B.2: Ensure all remote conversations are indexed in local Antigravity state.vscdb
-                fresh_local_sums = self.engine.read_vscdb_summaries()
-                missing_vscdb = {}
+                # Step B.2: Ensure all remote conversations are indexed across all local Antigravity state.vscdb profiles
+                all_remote_sums = {}
                 for c_id, r_meta in remote_convs.items():
-                    if c_id not in fresh_local_sums and r_meta.get("trajectorySummaryB64"):
+                    if r_meta.get("trajectorySummaryB64"):
                         try:
-                            missing_vscdb[c_id] = base64.b64decode(r_meta["trajectorySummaryB64"])
+                            all_remote_sums[c_id] = base64.b64decode(r_meta["trajectorySummaryB64"])
                         except Exception:
                             pass
-                if missing_vscdb:
-                    added_count = self.engine.merge_vscdb_summaries(missing_vscdb)
-                    if verbose:
-                        print(f"  ✔ Restored {added_count} conversation(s) into Antigravity Past Conversations index.")
+                if all_remote_sums:
+                    added_count = self.engine.merge_vscdb_summaries(all_remote_sums)
+                    if verbose and added_count > 0:
+                        print(f"  ✔ Synchronized {added_count} conversation summary(ies) across Antigravity profiles.")
 
                 # Check if remote registry lacks trajectorySummaryB64 for conversations existing locally
                 registry_needs_update = uploaded_count > 0

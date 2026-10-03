@@ -325,6 +325,175 @@ class HistoryEngine:
         chunk.extend(field2)
         return bytes(chunk)
 
+    @staticmethod
+    def _extract_title_from_summary_chunk(chunk: bytes) -> Optional[str]:
+        """Extracts the conversation title from a trajectorySummary protobuf chunk."""
+        pos = 0
+        inner_b64 = None
+        while pos < len(chunk):
+            tag, pos = _decode_varint(chunk, pos)
+            fn = tag >> 3
+            length, pos = _decode_varint(chunk, pos)
+            val = chunk[pos : pos + length]
+            pos += length
+            if fn == 2:
+                spos = 0
+                while spos < len(val):
+                    stag, spos = _decode_varint(val, spos)
+                    sfn = stag >> 3
+                    slen, spos = _decode_varint(val, spos)
+                    sval = val[spos : spos + slen]
+                    spos += slen
+                    if sfn == 1:
+                        inner_b64 = sval.decode("ascii", errors="ignore")
+        if not inner_b64:
+            return None
+        try:
+            raw_inner = base64.b64decode(inner_b64)
+            ipos = 0
+            while ipos < len(raw_inner):
+                itag, ipos = _decode_varint(raw_inner, ipos)
+                ifn = itag >> 3
+                iwt = itag & 0x7
+                if iwt == 0:
+                    _, ipos = _decode_varint(raw_inner, ipos)
+                elif iwt == 2:
+                    ilen, ipos = _decode_varint(raw_inner, ipos)
+                    ival = raw_inner[ipos : ipos + ilen]
+                    ipos += ilen
+                    if ifn == 1:
+                        return ival.decode("utf-8", errors="ignore")
+                else:
+                    break
+        except Exception:
+            pass
+        return None
+
+    def discover_and_index_local_conversations(self) -> int:
+        """
+        Scans ~/.gemini/antigravity-ide/conversations/*.db for all local conversations
+        created natively by Antigravity IDE, extracts their metadata, links them
+        with protobuf summaries, updates cache.json, and ensures state.vscdb is populated.
+        Returns the number of newly indexed conversations.
+        """
+        if not self.conversations_dir.exists():
+            return 0
+
+        local_cache = self.read_cache()
+        convs = local_cache.setdefault("conversations", {})
+        existing_vscdb_sums = self.read_vscdb_summaries()
+        summaries_to_merge = {}
+        newly_indexed = 0
+
+        # Scan all .db files in conversations directory
+        for db_file in self.conversations_dir.glob("*.db"):
+            c_id = db_file.stem
+            try:
+                stat = db_file.stat()
+                mtime_iso = datetime.datetime.fromtimestamp(stat.st_mtime, tz=datetime.timezone.utc).isoformat()
+            except Exception:
+                continue
+
+            existing_entry = convs.get(c_id)
+            if existing_entry and existing_entry.get("lastModifiedTime", "") >= mtime_iso:
+                if c_id not in existing_vscdb_sums:
+                    title = existing_entry.get("summary", "Conversation")
+                    traj_id = existing_entry.get("trajectoryMetadata", {}).get("trajectoryId")
+                    ws_uri = ""
+                    if existing_entry.get("workspaces"):
+                        ws_uri = existing_entry["workspaces"][0].get("workspaceFolderAbsoluteUri", "")
+                    chunk = self.build_synthetic_summary_chunk(c_id, title, traj_id, ws_uri)
+                    summaries_to_merge[c_id] = chunk
+                continue
+
+            title = None
+            step_count = 0
+            traj_id = None
+            ws_uri = ""
+
+            try:
+                conn = sqlite3.connect(str(db_file))
+                cur = conn.cursor()
+                try:
+                    cur.execute("SELECT count(*) FROM steps")
+                    row = cur.fetchone()
+                    if row:
+                        step_count = row[0]
+                except Exception:
+                    pass
+
+                try:
+                    cur.execute("SELECT trajectory_id FROM trajectory_meta LIMIT 1")
+                    row = cur.fetchone()
+                    if row:
+                        traj_id = row[0]
+                except Exception:
+                    pass
+
+                try:
+                    cur.execute("SELECT data FROM trajectory_metadata_blob WHERE id = 'main' LIMIT 1")
+                    row = cur.fetchone()
+                    if row and row[0]:
+                        raw_blob = row[0]
+                        uris = re.findall(rb"file:///[^\x00-\x1f\x7f-\xff\"'<>]+", raw_blob)
+                        if uris:
+                            ws_uri = uris[0].decode("utf-8", errors="ignore")
+                except Exception:
+                    pass
+
+                if c_id in existing_vscdb_sums:
+                    chunk = existing_vscdb_sums[c_id]
+                    title = self._extract_title_from_summary_chunk(chunk)
+
+                if not title and step_count > 0:
+                    try:
+                        cur.execute("SELECT step_payload FROM steps WHERE step_type = 14 ORDER BY idx ASC LIMIT 1")
+                        row = cur.fetchone()
+                        if row and row[0]:
+                            payload = row[0]
+                            if isinstance(payload, bytes):
+                                strings = re.findall(rb"[\x20-\x7e]{4,}", payload)
+                                for s in strings:
+                                    s_str = s.decode("utf-8", errors="ignore").strip()
+                                    if len(s_str) > 10 and not s_str.startswith("file://") and not s_str.startswith("http"):
+                                        title = s_str[:60].strip()
+                                        break
+                    except Exception:
+                        pass
+
+                conn.close()
+            except Exception:
+                pass
+
+            if not title:
+                title = existing_entry.get("summary") if existing_entry else f"Conversation {c_id[:8]}"
+
+            created_iso = existing_entry.get("createdTime", mtime_iso) if existing_entry else mtime_iso
+
+            if c_id not in existing_vscdb_sums:
+                chunk = self.build_synthetic_summary_chunk(c_id, title, traj_id, ws_uri)
+                summaries_to_merge[c_id] = chunk
+
+            workspaces = [{"workspaceFolderAbsoluteUri": ws_uri}] if ws_uri else []
+            convs[c_id] = {
+                "summary": title,
+                "createdTime": created_iso,
+                "lastModifiedTime": mtime_iso,
+                "stepCount": step_count,
+                "workspaces": workspaces,
+                "trajectoryMetadata": {
+                    "trajectoryId": traj_id,
+                    "cascadeId": c_id
+                }
+            }
+            newly_indexed += 1
+
+        if summaries_to_merge:
+            self.merge_vscdb_summaries(summaries_to_merge)
+
+        self.write_cache_atomic(local_cache)
+        return newly_indexed
+
     def list_conversations(self) -> List[Dict[str, Any]]:
         """Returns a list of all conversations with statistics."""
         cache = self.read_cache()
