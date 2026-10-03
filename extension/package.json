@@ -13,6 +13,7 @@
     "type": "git",
     "url": "https://github.com/zahidshaikh08/antigravity-auto-sync.git"
   },
+  "icon": "images/icon.png",
   "engines": {
     "vscode": "^1.80.0"
   },

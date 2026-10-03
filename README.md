@@ -1,8 +1,20 @@
-# 🚀 Antigravity History Sync & Cross-Platform Migration Tool
+<div align="center">
 
-A powerful, zero-dependency synchronization and migration tool for **Google Antigravity** (both Antigravity IDE and Antigravity 2.0). 
+![Antigravity Sync Banner](assets/banner.png)
 
-Seamlessly backup, export, import, or auto-sync your entire conversation history across **macOS, Windows, and Linux** with **100% context retention**—retaining all prompts, model turns, code plans, artifacts, and SQLite database states.
+# 🌌 Antigravity Sync
+### *Float your AI chats across every machine. Zero config. Zero friction.*
+
+[![Release](https://img.shields.io/badge/release-v1.0.0-00f0ff?style=for-the-badge&logo=github)](https://github.com/zahidshaikh08/antigravity-auto-sync)
+[![License: MIT](https://img.shields.io/badge/License-MIT-7b2cbf?style=for-the-badge)](LICENSE)
+[![Platform](https://img.shields.io/badge/Platform-macOS%20%7C%20Windows%20%7C%20Linux-38bdf8?style=for-the-badge)](README.md)
+[![Storage](https://img.shields.io/badge/Cloud-Google%20Drive%20Vault-4285f4?style=for-the-badge&logo=googledrive)](README.md)
+
+<p align="center">
+  A seamless, zero-configuration cloud synchronization and cross-platform migration suite for <b>Google Antigravity</b> (Antigravity IDE & Antigravity 2.0). 
+</p>
+
+</div>
 
 ---
 
