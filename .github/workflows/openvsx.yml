@@ -1,0 +1,27 @@
+name: Publish to Open VSX
+
+on:
+  release:
+    types: [created]
+  workflow_dispatch:
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Package Extension
+        run: |
+          cd extension
+          npx -y @vscode/vsce package --no-dependencies --skip-license -o ../antigravity-history-sync-${{ github.ref_name }}.vsix
+
+      - name: Publish to Open VSX
+        run: |
+          npx -y ovsx publish antigravity-history-sync-*.vsix -p ${{ secrets.OVSX_PAT }}
