@@ -1,8 +1,8 @@
 {
-  "name": "antigravity-history-sync",
+  "name": "antigravity-sync",
   "displayName": "Antigravity Sync",
   "description": "Float your AI chats across every machine. Zero-config cloud auto-sync for Google Antigravity via your personal Google Drive.",
-  "version": "1.0.1",
+  "version": "1.0.0",
   "publisher": "zahidshaikh",
   "author": {
     "name": "Zahid Shaikh",

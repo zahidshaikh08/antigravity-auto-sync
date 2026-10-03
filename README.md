@@ -53,7 +53,7 @@ Install the native Antigravity IDE extension to enjoy **100% silent, automatic c
 ### 1. Install Extension
 Run in your terminal (or drag-and-drop the `.vsix` into Antigravity):
 ```bash
-antigravity-ide --install-extension antigravity-history-sync-1.0.1.vsix
+antigravity-ide --install-extension antigravity-sync-1.0.0.vsix
 ```
 *(On macOS, the full path is `"/Applications/Antigravity IDE.app/Contents/Resources/app/bin/antigravity-ide"`)*
 
