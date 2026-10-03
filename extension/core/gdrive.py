@@ -420,8 +420,14 @@ class GDriveSyncClient:
 
         file_id = files[0]["id"]
         content = self._request(f"files/{file_id}?alt=media")
+        if isinstance(content, dict):
+            return content
         try:
-            return json.loads(content.decode("utf-8"))
+            if isinstance(content, bytes):
+                return json.loads(content.decode("utf-8"))
+            elif isinstance(content, str):
+                return json.loads(content)
+            return {"version": 1, "updatedAt": "", "conversations": {}}
         except Exception:
             return {"version": 1, "updatedAt": "", "conversations": {}}
 
