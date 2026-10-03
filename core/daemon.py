@@ -181,27 +181,61 @@ class SyncCoordinator:
         print(f"[*] Starting Antigravity Sync Daemon (Polling every {interval_seconds}s)...")
         print("[*] Press Ctrl+C to terminate.")
 
-        last_mtime = 0.0
+        # Step 1: Immediate Startup Sync on launch
+        try:
+            print(f"[{datetime.datetime.now().strftime('%H:%M:%S')}] Running startup sync with Google Drive...")
+            res = self.sync_cycle(verbose=True)
+            if res["success"]:
+                print(f"[{datetime.datetime.now().strftime('%H:%M:%S')}] ✔ Synced (Uploaded: {res['uploaded']}, Downloaded: {res['downloaded']})")
+            else:
+                print(f"[!] Startup sync error: {res.get('error')}", file=sys.stderr)
+        except Exception as e:
+            print(f"[!] Startup sync exception: {e}", file=sys.stderr)
+
+        # Step 2: Background Watcher & Poller Loop
+        last_mtime = self.engine.cache_file.stat().st_mtime if self.engine.cache_file.exists() else 0.0
+        last_remote_check = time.time()
+
         while True:
             try:
-                # Check if cache.json was modified locally
+                time.sleep(5)
+                now = time.time()
+
+                # Check A: Local modifications to cache.json
+                local_changed = False
                 if self.engine.cache_file.exists():
                     current_mtime = self.engine.cache_file.stat().st_mtime
                     if current_mtime > last_mtime:
                         last_mtime = current_mtime
-                        # Debounce wait
-                        time.sleep(5)
+                        local_changed = True
+                        # Debounce wait for agent file writes to finish
+                        time.sleep(3)
                         print(f"[{datetime.datetime.now().strftime('%H:%M:%S')}] Detected local chat changes. Running sync...")
-                        res = self.sync_cycle(verbose=False)
+                        res = self.sync_cycle(verbose=True)
+                        last_remote_check = now
                         if res["success"]:
                             print(f"[{datetime.datetime.now().strftime('%H:%M:%S')}] ✔ Synced (Uploaded: {res['uploaded']}, Downloaded: {res['downloaded']})")
+                            if self.engine.cache_file.exists():
+                                last_mtime = self.engine.cache_file.stat().st_mtime
                         else:
                             print(f"\n[!] Sync error:\n{res.get('error')}\n", file=sys.stderr)
 
-                time.sleep(interval_seconds)
+                # Check B: Periodic Remote Polling (every interval_seconds)
+                if not local_changed and (now - last_remote_check >= interval_seconds):
+                    last_remote_check = now
+                    res = self.sync_cycle(verbose=False)
+                    if res["success"]:
+                        if res["downloaded"] > 0 or res["uploaded"] > 0:
+                            print(f"[{datetime.datetime.now().strftime('%H:%M:%S')}] ✔ Synced (Uploaded: {res['uploaded']}, Downloaded: {res['downloaded']})")
+                            if self.engine.cache_file.exists():
+                                last_mtime = self.engine.cache_file.stat().st_mtime
+                    else:
+                        print(f"[!] Remote poll error: {res.get('error')}", file=sys.stderr)
+
             except KeyboardInterrupt:
                 print("\n[*] Sync daemon stopped.")
                 break
             except Exception as e:
                 print(f"[!] Error in sync daemon loop:\n{e}\n", file=sys.stderr)
                 time.sleep(interval_seconds)
+

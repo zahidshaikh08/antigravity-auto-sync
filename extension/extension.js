@@ -25,6 +25,20 @@ function getCliPath(context) {
 }
 
 /**
+ * Resolves the Python binary across platforms (python3 on Unix, python on Windows)
+ */
+function getPythonBinary(config) {
+    const userPath = config.get('pythonPath');
+    if (userPath && userPath !== 'python3') {
+        return userPath;
+    }
+    if (process.platform === 'win32') {
+        return 'python';
+    }
+    return 'python3';
+}
+
+/**
  * Checks if user is authenticated with Google Drive
  */
 function isAuthenticated() {
@@ -98,12 +112,12 @@ function startDaemon(context) {
         return;
     }
 
-    const pythonBin = config.get('pythonPath', 'python3');
+    const pythonBin = getPythonBinary(config);
     const cliPath = getCliPath(context);
     const interval = config.get('intervalSeconds', 30);
 
     outputChannel.appendLine(`[*] Starting sync daemon using: ${pythonBin} ${cliPath}`);
-    updateStatusBar('active');
+    updateStatusBar('syncing', 'Initializing background auto-sync...');
 
     try {
         daemonProcess = spawn(pythonBin, [cliPath, 'daemon', '--interval', String(interval)], {
@@ -115,8 +129,8 @@ function startDaemon(context) {
             const str = chunk.toString();
             outputChannel.append(str);
 
-            if (str.includes('Detected local chat changes')) {
-                updateStatusBar('syncing', 'Detected chat updates. Uploading to Google Drive...');
+            if (str.includes('Running startup sync') || str.includes('Detected local chat changes') || str.includes('Running sync')) {
+                updateStatusBar('syncing', 'Synchronizing conversations with Google Drive...');
             } else if (str.includes('✔ Synced')) {
                 updateStatusBar('synced', str.trim());
                 if (config.get('showNotifications', true)) {
@@ -185,7 +199,7 @@ async function runSyncNow(context) {
     }
 
     const config = vscode.workspace.getConfiguration('antigravitySync');
-    const pythonBin = config.get('pythonPath', 'python3');
+    const pythonBin = getPythonBinary(config);
     const cliPath = getCliPath(context);
 
     updateStatusBar('syncing', 'Manual sync in progress...');
@@ -239,7 +253,7 @@ async function runSyncNow(context) {
  */
 async function runLogin(context) {
     const config = vscode.workspace.getConfiguration('antigravitySync');
-    const pythonBin = config.get('pythonPath', 'python3');
+    const pythonBin = getPythonBinary(config);
     const cliPath = getCliPath(context);
 
     const terminal = vscode.window.createTerminal('Antigravity Sync Login');
@@ -259,8 +273,8 @@ async function runLogin(context) {
     const checkInterval = setInterval(() => {
         if (isAuthenticated()) {
             clearInterval(checkInterval);
-            updateStatusBar('active');
-            vscode.window.showInformationMessage('✔ Google Drive successfully connected! Background auto-sync is now active.');
+            updateStatusBar('syncing', 'Google Drive connected! Starting automatic background sync...');
+            vscode.window.showInformationMessage('✔ Google Drive successfully connected! Automatic background sync is now running.');
             startDaemon(context);
         }
     }, 2000);
@@ -283,7 +297,7 @@ async function runLogout(context) {
     stopDaemon();
 
     const config = vscode.workspace.getConfiguration('antigravitySync');
-    const pythonBin = config.get('pythonPath', 'python3');
+    const pythonBin = getPythonBinary(config);
     const cliPath = getCliPath(context);
 
     const proc = spawn(pythonBin, [cliPath, 'logout'], { cwd: path.dirname(cliPath) });
@@ -449,9 +463,9 @@ function activate(context) {
         vscode.commands.registerCommand('antigravitySync.viewStats', showStats)
     );
 
-    // Initial state check
+    // Initial state check - auto-start sync on IDE startup
     if (isAuthenticated()) {
-        updateStatusBar('active');
+        updateStatusBar('syncing', 'Starting background auto-sync...');
         startDaemon(context);
     } else {
         updateStatusBar('not_connected');
