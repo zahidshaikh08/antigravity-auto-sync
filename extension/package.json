@@ -1,7 +1,7 @@
 {
   "name": "antigravity-history-sync",
-  "displayName": "Antigravity Chat Auto-Sync",
-  "description": "Zero-configuration cloud auto-sync for Antigravity chat history across all your machines via Google Drive.",
+  "displayName": "Antigravity Sync",
+  "description": "Float your AI chats across every machine. Zero-config cloud auto-sync for Google Antigravity via your personal Google Drive.",
   "version": "1.0.0",
   "publisher": "zahidshaikh",
   "author": {
@@ -9,11 +9,19 @@
     "email": "shaikhzahid9013@gmail.com"
   },
   "license": "MIT",
+  "homepage": "https://github.com/zahidshaikh08/antigravity-auto-sync",
+  "bugs": {
+    "url": "https://github.com/zahidshaikh08/antigravity-auto-sync/issues"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/zahidshaikh08/antigravity-auto-sync.git"
   },
   "icon": "images/icon.png",
+  "galleryBanner": {
+    "color": "#0A0D14",
+    "theme": "dark"
+  },
   "engines": {
     "vscode": "^1.80.0"
   },

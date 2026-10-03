@@ -1,18 +1,54 @@
-# Antigravity Chat Auto-Sync Extension
+<div align="center">
 
-Automatic bidirectional cloud sync for your Google Antigravity chat history across all your machines using your personal Google Drive.
+![Antigravity Sync Banner](images/banner.png)
 
-## Features
+# 🌌 Antigravity Sync
+### *Float your AI chats across every machine. Zero config. Zero friction.*
 
-- ☁ **Zero Configuration**: Connect your Google account once with 1 click.
-- ⚡ **Real-Time Auto-Sync**: Automatically detects when you chat with Antigravity and uploads the changes silently in the background.
-- 🔄 **Cross-Machine Sync**: When you switch to another laptop or desktop with Antigravity, new conversations are automatically downloaded and merged.
-- 🛡 **Private & Secure**: All your chats and attachments stay 100% in your private Google Drive folder (`AntigravitySync`). Zero third-party databases.
-- 🔀 **Smart Path Remapping**: Safely maps local workspace URIs when switching between macOS, Windows, and Linux.
+[![Release](https://img.shields.io/badge/Release-v1.0.0-00f0ff?style=for-the-badge)](https://github.com/zahidshaikh08/antigravity-auto-sync)
+[![License: MIT](https://img.shields.io/badge/License-MIT-7b2cbf?style=for-the-badge)](LICENSE.txt)
+[![Cloud](https://img.shields.io/badge/Cloud-Google%20Drive-4285f4?style=for-the-badge&logo=googledrive)](https://github.com/zahidshaikh08/antigravity-auto-sync)
 
-## Quick Start
+</div>
 
-1. Install this extension in Antigravity IDE.
-2. Click the **$(cloud) AGY Sync: Connect Drive** item in the bottom-right status bar.
+---
+
+## ⚡ Why Antigravity Sync?
+
+When switching between your work Mac, personal laptop, or desktop, you shouldn't have to lose your Antigravity conversation threads, code plans, thought chains, or agent state.
+
+**Antigravity Sync** gives you seamless, background cloud synchronization across all your machines using your **personal Google Drive account**:
+
+- ☁ **Zero Configuration**: Connect your Google Account once with 1 click.
+- 🔄 **Real-Time Bidirectional Sync**: Automatically detects chat updates, debounces typing pauses, and synchronizes deltas silently.
+- 🛡 **100% Private & Secure**: Backups are saved directly to your personal Google Drive (`AntigravitySync/`). No third-party servers, databases, or subscriptions.
+- 🧭 **Cross-Platform Path Remapping**: Automatically maps workspace paths across macOS (`file:///Users/...`), Windows (`file:///C:/Users/...`), and Linux (`file:///home/...`).
+- 🔒 **Safe-Merge Guarantee**: Non-destructive sync that never deletes or overwrites existing local conversations.
+
+---
+
+## 🚀 Quick Start
+
+1. Install this extension in **Antigravity IDE** (or any VS Code-compatible editor).
+2. Look at the bottom-right status bar: click **`☁ AGY Sync: Connect Drive`** *(or press `Cmd+Shift+P` -> `Antigravity Sync: Connect Google Drive`)*.
 3. Sign in to your Google Account in the browser window and grant access.
-4. That's it! Your chats will now stay in sync across all your devices automatically.
+4. **Done!** The status bar will switch to **`☁ AGY Sync: Active`**. Your conversations will now stay synchronized across all your devices automatically.
+
+---
+
+## 🎮 Status Bar Controls
+
+Clicking the **`☁ AGY Sync`** status bar item opens a quick action menu:
+- 🔄 **Sync Now**: Run an immediate two-way synchronization.
+- ⏸️ **Pause / Resume Auto-Sync**: Toggle background watching on or off.
+- 📊 **View Local Conversations & Stats**: Inspect indexed conversations and step counts.
+- 📜 **View Sync Logs**: Monitor real-time background sync activity.
+- 🚪 **Disconnect Google Drive**: Unlink your account from this machine.
+
+---
+
+## 🔒 Privacy & Open Source
+
+- **Source Code**: [github.com/zahidshaikh08/antigravity-auto-sync](https://github.com/zahidshaikh08/antigravity-auto-sync)
+- **License**: MIT
+- **Privacy Guarantee**: We do not operate any middleman servers. All transfers occur directly between Antigravity and Google's official Drive APIs.
