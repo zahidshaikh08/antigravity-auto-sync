@@ -134,12 +134,24 @@ function startDaemon(context) {
             } else if (str.includes('✔ Synced')) {
                 updateStatusBar('synced', str.trim());
                 if (config.get('showNotifications', true)) {
-                    // Check if non-zero uploads or downloads
                     const match = str.match(/Uploaded:\s*(\d+),\s*Downloaded:\s*(\d+)/);
-                    if (match && (parseInt(match[1]) > 0 || parseInt(match[2]) > 0)) {
-                        vscode.window.showInformationMessage(
-                            `Antigravity Sync: Uploaded ${match[1]}, Downloaded ${match[2]} conversation(s).`
-                        );
+                    if (match) {
+                        const uploaded = parseInt(match[1]);
+                        const downloaded = parseInt(match[2]);
+                        if (downloaded > 0) {
+                            vscode.window.showInformationMessage(
+                                `✔ Antigravity Sync: Downloaded ${downloaded} conversation(s) from Google Drive.`,
+                                'Reload Window to Refresh Sidebar'
+                            ).then((choice) => {
+                                if (choice === 'Reload Window to Refresh Sidebar') {
+                                    vscode.commands.executeCommand('workbench.action.reloadWindow');
+                                }
+                            });
+                        } else if (uploaded > 0) {
+                            vscode.window.showInformationMessage(
+                                `✔ Antigravity Sync: Uploaded ${uploaded} conversation(s) to Google Drive.`
+                            );
+                        }
                     }
                 }
             } else if (str.includes('[!] Sync error')) {
@@ -237,7 +249,20 @@ async function runSyncNow(context) {
             proc.on('close', (code) => {
                 if (code === 0 && !outBuffer.includes('[!] Sync error')) {
                     updateStatusBar('synced');
-                    vscode.window.showInformationMessage('✔ Antigravity Sync: All conversations successfully synced with Google Drive!');
+                    const match = outBuffer.match(/Downloaded:\s*(\d+)/);
+                    const downloaded = match ? parseInt(match[1]) : 0;
+                    if (downloaded > 0) {
+                        vscode.window.showInformationMessage(
+                            `✔ Antigravity Sync: Downloaded ${downloaded} conversation(s) from Google Drive!`,
+                            'Reload Window to Refresh Sidebar'
+                        ).then((sel) => {
+                            if (sel === 'Reload Window to Refresh Sidebar') {
+                                vscode.commands.executeCommand('workbench.action.reloadWindow');
+                            }
+                        });
+                    } else {
+                        vscode.window.showInformationMessage('✔ Antigravity Sync: All conversations are up to date!');
+                    }
                 } else {
                     updateStatusBar('error');
                     vscode.window.showErrorMessage(`Antigravity Sync Error: ${errBuffer || 'Check Output panel for details.'}`);
