@@ -34,7 +34,30 @@ Antigravity stores conversation state across three distinct locations on your ma
 
 ---
 
-## 🚀 Quickstart Guide
+## 🔌 Antigravity IDE Extension (Recommended - Zero CLI!)
+
+Install the native Antigravity IDE extension to enjoy **100% silent, automatic cloud sync**:
+
+### 1. Install Extension
+Run in your terminal (or drag-and-drop the `.vsix` into Antigravity):
+```bash
+antigravity-ide --install-extension antigravity-history-sync-1.0.0.vsix
+```
+*(On macOS, the full path is `"/Applications/Antigravity IDE.app/Contents/Resources/app/bin/antigravity-ide"`)*
+
+### 2. Connect Your Google Account
+- Open Antigravity IDE.
+- Look at the bottom-right status bar: **`☁ AGY Sync: Connect Drive`**.
+- Click it (or press `Cmd+Shift+P` -> `Antigravity Sync: Connect Google Drive`).
+- Sign in to your Google Account in the browser window and grant permission.
+
+### 3. That's It!
+- Whenever you chat on **Machine A**, Antigravity automatically detects the new messages and uploads them to Google Drive silently.
+- Whenever you open Antigravity on **Machine B** (with the same Google Account), it pulls the new chats and merges them into your sidebar automatically!
+
+---
+
+## 🚀 Alternative Modes
 
 ### Mode 1: Portable ZIP Migration (Mac ↔ Windows)
 

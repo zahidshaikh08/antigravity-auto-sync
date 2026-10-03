@@ -1,0 +1,95 @@
+{
+  "name": "antigravity-history-sync",
+  "displayName": "Antigravity Chat Auto-Sync",
+  "description": "Zero-configuration cloud auto-sync for Antigravity chat history across all your machines via Google Drive.",
+  "version": "1.0.0",
+  "publisher": "zahidshaikh",
+  "author": {
+    "name": "Zahid Shaikh",
+    "email": "shaikhzahid9013@gmail.com"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/zahidshaikh08/antigravity-auto-sync.git"
+  },
+  "engines": {
+    "vscode": "^1.80.0"
+  },
+  "categories": [
+    "Other",
+    "Productivity"
+  ],
+  "keywords": [
+    "antigravity",
+    "history",
+    "sync",
+    "backup",
+    "google-drive",
+    "chat"
+  ],
+  "main": "./extension.js",
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "contributes": {
+    "commands": [
+      {
+        "command": "antigravitySync.statusMenu",
+        "title": "Antigravity Sync: Open Menu",
+        "category": "Antigravity Sync"
+      },
+      {
+        "command": "antigravitySync.syncNow",
+        "title": "Antigravity Sync: Sync Now",
+        "category": "Antigravity Sync",
+        "icon": "$(sync)"
+      },
+      {
+        "command": "antigravitySync.login",
+        "title": "Antigravity Sync: Connect Google Drive",
+        "category": "Antigravity Sync"
+      },
+      {
+        "command": "antigravitySync.logout",
+        "title": "Antigravity Sync: Disconnect Google Drive",
+        "category": "Antigravity Sync"
+      },
+      {
+        "command": "antigravitySync.toggleAutoSync",
+        "title": "Antigravity Sync: Toggle Background Auto-Sync",
+        "category": "Antigravity Sync"
+      },
+      {
+        "command": "antigravitySync.viewStats",
+        "title": "Antigravity Sync: View Local Stats",
+        "category": "Antigravity Sync"
+      }
+    ],
+    "configuration": {
+      "title": "Antigravity History Sync",
+      "properties": {
+        "antigravitySync.autoSync": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically sync chat history in the background when changes occur."
+        },
+        "antigravitySync.intervalSeconds": {
+          "type": "number",
+          "default": 30,
+          "description": "Polling interval in seconds to check for new remote conversations."
+        },
+        "antigravitySync.pythonPath": {
+          "type": "string",
+          "default": "python3",
+          "description": "Path to Python 3 binary on this machine."
+        },
+        "antigravitySync.showNotifications": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show non-intrusive notifications when conversations are synced."
+        }
+      }
+    }
+  }
+}
