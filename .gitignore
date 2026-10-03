@@ -1,0 +1,42 @@
+# Python Bytecode and Cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+
+# Virtual Environments
+.venv/
+venv/
+ENV/
+env/
+
+# Sensitive Credentials & Auth Tokens (DO NOT COMMIT)
+*credentials*.json
+*auth*.json
+*.token
+*.pem
+*.key
+
+# Archive Files & Backups
+*.zip
+*.agyzip
+*.tar.gz
+*.bak
+backups/
+
+# System and IDE Files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+.idea/
+.vscode/
+
+# Local Testing Sandboxes & Logs
+agy_test_*/
+agy_sync_*/
+*.log
